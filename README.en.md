@@ -27,11 +27,9 @@
 
 Download the latest `.vsix` from the [`vsix/`](https://github.com/whoishzp/cursor-good/tree/master/vsix) directory, e.g. `cursor-good-3.5.1.vsix`.
 
-Install via Cursor UI:
+Install via Cursor command palette:
 
-```
-Extensions panel (sidebar) → ··· menu (top-right) → Install from VSIX → select the file
-```
+> `⇧` `⌘` `P` to open Command Palette → type `Extensions: Install from VSIX` → select the downloaded `.vsix` file → press Enter
 
 Or via command line:
 
