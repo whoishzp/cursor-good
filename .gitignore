@@ -4,3 +4,5 @@ out/
 .DS_Store
 .cursor/
 .cursor/*
+cursor/
+cursor/*
