@@ -23,10 +23,31 @@
 
 ### 第 1 步：安装扩展
 
-通过 Cursor 安装 `cursor-good-*.vsix`：
+**方式一：直接下载安装（推荐）**
+
+从仓库 [`vsix/`](https://github.com/whoishzp/cursor-good/tree/master/vsix) 目录下载最新版本的 `.vsix` 文件，例如 `cursor-good-3.5.1.vsix`。
+
+在 Cursor 中安装：
 
 ```
-扩展面板 → ··· 菜单 → 从 VSIX 安装 → 选择文件
+扩展面板（左侧栏） → 点击右上角 ··· 菜单 → 从 VSIX 安装 → 选择下载的 .vsix 文件
+```
+
+也可通过命令行安装：
+
+```bash
+cursor --install-extension cursor-good-3.5.1.vsix
+```
+
+**方式二：从源码编译**
+
+```bash
+git clone git@github.com:whoishzp/cursor-good.git
+cd cursor-good
+npm install
+npm run compile
+npm run package
+cursor --install-extension cursor-good-*.vsix
 ```
 
 **首次激活时，扩展会自动写入 `~/.cursor/mcp.json`。**  

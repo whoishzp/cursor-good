@@ -23,10 +23,31 @@
 
 ### 1. Install the Extension
 
-Install `cursor-good-*.vsix` via Cursor:
+**Option A: Download and install (recommended)**
+
+Download the latest `.vsix` from the [`vsix/`](https://github.com/whoishzp/cursor-good/tree/master/vsix) directory, e.g. `cursor-good-3.5.1.vsix`.
+
+Install via Cursor UI:
 
 ```
-Extensions panel → ··· menu → Install from VSIX → select the file
+Extensions panel (sidebar) → ··· menu (top-right) → Install from VSIX → select the file
+```
+
+Or via command line:
+
+```bash
+cursor --install-extension cursor-good-3.5.1.vsix
+```
+
+**Option B: Build from source**
+
+```bash
+git clone git@github.com:whoishzp/cursor-good.git
+cd cursor-good
+npm install
+npm run compile
+npm run package
+cursor --install-extension cursor-good-*.vsix
 ```
 
 **On first activation, the extension automatically writes to `~/.cursor/mcp.json`.**  
