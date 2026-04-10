@@ -1,45 +1,46 @@
 # Cursor Good
 
-**Inline interactive feedback panel for Cursor IDE — fully standalone, no external MCP server needed.**
+**Cursor IDE 内联交互反馈面板插件 — 完全独立运行，无需外部 MCP 服务。**
 
-> Author: [WhoIsHzp](https://github.com/whoishzp)  
-> Repository: [github.com/whoishzp/cursor-good](https://github.com/whoishzp/cursor-good)  
-> Version: 3.5.1
-
----
-
-## Features
-
-- **Inline feedback panel** — replaces pop-up dialogs with a native Cursor side panel
-- **Predefined option buttons** — quick-reply choices rendered as clickable buttons
-- **Image paste** — paste images via `Ctrl+V` or click the 📎 button
-- **Multi-line text input** — `Ctrl+Enter` to send
-- **Fully standalone** — no Python, no external MCP server, everything is bundled
+> 作者：[WhoIsHzp](https://github.com/whoishzp)  
+> 仓库：[github.com/whoishzp/cursor-good](https://github.com/whoishzp/cursor-good)  
+> 版本：3.5.1  
+> 语言：**中文** | [English](README.en.md)
 
 ---
 
-## Quick Start (2 steps)
+## 功能特性
 
-### 1. Install the Extension
+- **内联反馈面板** — 用原生 Cursor 侧边面板替代弹出式对话框
+- **预定义选项按钮** — 常用回复渲染为可点击按钮，一键快速回复
+- **图片粘贴** — 支持 `Ctrl+V` 或点击 📎 按钮粘贴图片
+- **多行文本输入** — `Ctrl+Enter` 发送
+- **完全独立** — 无需 Python、无需外部 MCP 服务，全部内置
 
-Install `cursor-good-*.vsix` via Cursor:
+---
+
+## 快速开始（2 步）
+
+### 第 1 步：安装扩展
+
+通过 Cursor 安装 `cursor-good-*.vsix`：
 
 ```
-Extensions panel → ··· menu → Install from VSIX → select the file
+扩展面板 → ··· 菜单 → 从 VSIX 安装 → 选择文件
 ```
 
-**On first activation, the extension automatically writes to `~/.cursor/mcp.json`.**  
-Restart Cursor once — the `CursorGood` tool is ready, no manual config needed.
+**首次激活时，扩展会自动写入 `~/.cursor/mcp.json`。**  
+重启 Cursor 一次 — `CursorGood` 工具即可使用，无需手动配置。
 
-> If you want to use a custom port, change `cursorFeedback.port` in Cursor settings  
-> and the MCP entry will be updated automatically on next activation.
+> 如需自定义端口，在 Cursor 设置中修改 `cursorFeedback.port`，  
+> 下次激活时 MCP 配置项会自动更新。
 
-### 2. Add the Cursor Rule to Your Project
+### 第 2 步：在项目中添加 Cursor 规则
 
-Create `.cursor/rules/cursor-good.mdc` in your project root and paste the rule below.
+在项目根目录创建 `.cursor/rules/cursor-good.mdc`，粘贴以下规则内容。
 
 <details>
-<summary>📋 <strong>cursor-good.mdc — click to expand & copy</strong></summary>
+<summary>📋 <strong>cursor-good.mdc — 点击展开并复制</strong></summary>
 
 ```markdown
 # CursorGood 强制规则（最高优先级，任何规则不得覆盖）
@@ -81,41 +82,41 @@ session 输出正文 → 立即调用 CursorGood → 本 turn 内不得再输出
 
 </details>
 
-The rule file is also available in the repo at [`cursor-good.mdc`](https://github.com/whoishzp/cursor-good/blob/master/cursor-good.mdc).
+规则文件同步维护于仓库：[`cursor-good.mdc`](https://github.com/whoishzp/cursor-good/blob/master/cursor-good.mdc)
 
 ---
 
-## Configuration
+## 配置项
 
-| Setting | Default | Description |
+| 配置项 | 默认值 | 说明 |
 |---|---|---|
-| `cursorFeedback.port` | `3722` | HTTP port for the embedded MCP server |
-| `cursorFeedback.pollTimeoutSeconds` | `60` | Seconds to wait for user reply before returning a WAITING response |
+| `cursorFeedback.port` | `3722` | 内嵌 MCP 服务的本地 HTTP 端口 |
+| `cursorFeedback.pollTimeoutSeconds` | `60` | 等待用户回复的最大秒数，超时后返回 WAITING 保持连接存活 |
 
 ---
 
-## How It Works
+## 工作原理
 
 ```
 Cursor AI
   │
   │  MCP tools/call → CursorGood
   ▼
-http://localhost:3722/sse  ← embedded in this VS Code extension
+http://localhost:3722/sse  ← 内嵌于本扩展
   │
-  │  opens VS Code WebviewPanel
+  │  打开 VS Code WebviewPanel
   ▼
-User types / selects / pastes images → clicks 发送
+用户输入文字 / 选择选项 / 粘贴图片 → 点击发送
   │
   ▼
-MCP tools/call response → back to Cursor AI
+MCP tools/call response → 返回给 Cursor AI
 ```
 
-The extension embeds a full **MCP SSE server** — when Cursor calls the `CursorGood` tool, a native Cursor side panel appears with your input form. No Python, no extra processes.
+本扩展内嵌完整的 **MCP SSE 服务端** — 当 Cursor 调用 `CursorGood` 工具时，原生 Cursor 侧边面板弹出输入表单。无 Python，无额外进程。
 
 ---
 
-## Development
+## 开发
 
 ```bash
 git clone git@github.com:whoishzp/cursor-good.git
@@ -124,7 +125,7 @@ npm install
 npm run compile
 ```
 
-Package as `.vsix`:
+打包为 `.vsix`：
 
 ```bash
 npm run package
