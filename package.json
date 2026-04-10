@@ -1,0 +1,54 @@
+{
+  "name": "cursor-good",
+  "displayName": "Cursor Good",
+  "description": "Inline interactive feedback panel for Cursor IDE — replaces the interactive-feedback-mcp popup with a native in-editor input view. Features: multi-line text input, image paste support (Ctrl+V), predefined option buttons, and Ctrl+Enter to send.",
+  "version": "3.5.1",
+  "publisher": "WhoIsHzp",
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "cursorFeedback.showPanel",
+        "title": "Cursor Good: Open Feedback Panel"
+      }
+    ],
+    "configuration": {
+      "title": "Cursor Good",
+      "properties": {
+        "cursorFeedback.port": {
+          "type": "number",
+          "default": 3722,
+          "description": "Local HTTP port for bridging the MCP server and this extension."
+        },
+        "cursorFeedback.pollTimeoutSeconds": {
+          "type": "number",
+          "default": 60,
+          "minimum": 5,
+          "maximum": 300,
+          "description": "Seconds to wait for user reply before returning a WAITING response to keep the MCP connection alive. Lower values are safer against Cursor client timeouts."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "npx @vscode/vsce package --no-dependencies && mv ../history/cursor-good-*.vsix ../history/back/ 2>/dev/null; mv cursor-good-*.vsix ../history/ && cd .. && git commit -ma 'release: cursor-good'"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.3.0",
+    "@vscode/vsce": "^2.22.0"
+  }
+}

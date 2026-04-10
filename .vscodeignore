@@ -1,0 +1,9 @@
+.vscode/**
+node_modules/**
+out/**/*.map
+src/**
+tsconfig.json
+package-lock.json
+cursor-interactive-feedback/**
+media/icon_real.jpg
+**/*.vsix
