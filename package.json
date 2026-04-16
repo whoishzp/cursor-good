@@ -2,7 +2,7 @@
   "name": "cursor-good",
   "displayName": "Cursor Good",
   "description": "Inline interactive feedback panel for Cursor IDE — replaces the interactive-feedback-mcp popup with a native in-editor input view. Features: multi-line text input, image paste support (Ctrl+V), predefined option buttons, and Ctrl+Enter to send.",
-  "version": "3.5.1",
+  "version": "3.6.0",
   "publisher": "WhoIsHzp",
   "icon": "media/icon.png",
   "engines": {

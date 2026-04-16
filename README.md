@@ -4,7 +4,7 @@
 
 > 作者：[WhoIsHzp](https://github.com/whoishzp)  
 > 仓库：[github.com/whoishzp/cursor-good](https://github.com/whoishzp/cursor-good)  
-> 版本：3.5.1  
+> 版本：3.6.0  
 > 语言：**中文** | [English](README.en.md)
 
 ---
@@ -15,6 +15,7 @@
 - **预定义选项按钮** — 常用回复渲染为可点击按钮，一键快速回复
 - **图片粘贴** — 支持 `Ctrl+V` 或点击 📎 按钮粘贴图片
 - **多行文本输入** — `Ctrl+Enter` 发送
+- **消息队列** — AI 处理期间发送的消息标记为"⏳ 待处理中"，AI 回来后自动合并发送
 - **完全独立** — 无需 Python、无需外部 MCP 服务，全部内置
 
 ---
@@ -25,7 +26,7 @@
 
 **方式一：直接下载安装（推荐）**
 
-从仓库 [`vsix/`](https://github.com/whoishzp/cursor-good/tree/master/vsix) 目录下载最新版本的 `.vsix` 文件，例如 `cursor-good-3.5.1.vsix`。
+从仓库 [`vsix/`](https://github.com/whoishzp/cursor-good/tree/master/vsix) 目录下载最新版本的 `.vsix` 文件，例如 `cursor-good-3.6.0.vsix`。
 
 在 Cursor 中安装：
 
@@ -34,7 +35,7 @@
 也可通过命令行安装：
 
 ```bash
-cursor --install-extension cursor-good-3.5.1.vsix
+cursor --install-extension cursor-good-3.6.0.vsix
 ```
 
 **方式二：从源码编译**

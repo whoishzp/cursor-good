@@ -4,7 +4,7 @@
 
 > Author: [WhoIsHzp](https://github.com/whoishzp)  
 > Repository: [github.com/whoishzp/cursor-good](https://github.com/whoishzp/cursor-good)  
-> Version: 3.5.1  
+> Version: 3.6.0  
 > Language: [中文](README.md) | **English**
 
 ---
@@ -15,6 +15,7 @@
 - **Predefined option buttons** — quick-reply choices rendered as clickable buttons
 - **Image paste** — paste images via `Ctrl+V` or click the 📎 button
 - **Multi-line text input** — `Ctrl+Enter` to send
+- **Message queue** — messages sent while AI is busy are marked "⏳ Pending" and auto-merged on next AI call
 - **Fully standalone** — no Python, no external MCP server, everything is bundled
 
 ---
@@ -25,7 +26,7 @@
 
 **Option A: Download and install (recommended)**
 
-Download the latest `.vsix` from the [`vsix/`](https://github.com/whoishzp/cursor-good/tree/master/vsix) directory, e.g. `cursor-good-3.5.1.vsix`.
+Download the latest `.vsix` from the [`vsix/`](https://github.com/whoishzp/cursor-good/tree/master/vsix) directory, e.g. `cursor-good-3.6.0.vsix`.
 
 Install via Cursor command palette:
 
@@ -34,7 +35,7 @@ Install via Cursor command palette:
 Or via command line:
 
 ```bash
-cursor --install-extension cursor-good-3.5.1.vsix
+cursor --install-extension cursor-good-3.6.0.vsix
 ```
 
 **Option B: Build from source**
