@@ -40,6 +40,10 @@
       }
     }
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/whoishzp/cursor-good.git"
+  },
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",

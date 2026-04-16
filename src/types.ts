@@ -42,4 +42,10 @@ export interface ChatMessage {
   images?:  string[];
   callId?:  string;
   ts:       number;
+  status?:  'pending' | 'processed';
+}
+
+export interface QueuedMessage {
+  text:   string;
+  images: string[];
 }

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as http from 'http';
-import { Session, PendingCall, ActivePrompt } from './types';
+import { Session, PendingCall, ActivePrompt, QueuedMessage } from './types';
 
 export const sessions    = new Map<string, Session>();
 export const pendingCalls = new Map<string, PendingCall>();
@@ -10,11 +10,12 @@ export const pendingCalls = new Map<string, PendingCall>();
  * so CommonJS imports always see the latest value.
  */
 export const appState = {
-  httpServer:       null as http.Server | null,
-  feedbackPanel:    null as vscode.WebviewPanel | null,
-  extensionCtx:     null as vscode.ExtensionContext | null,
-  activePrompt:     null as ActivePrompt | null,
-  reopenScheduled:  false,
-  sessionId:        null as string | null,
-  sessionLogPath:   null as string | null,
+  httpServer:           null as http.Server | null,
+  feedbackPanel:        null as vscode.WebviewPanel | null,
+  extensionCtx:         null as vscode.ExtensionContext | null,
+  activePrompt:         null as ActivePrompt | null,
+  reopenScheduled:      false,
+  sessionId:            null as string | null,
+  sessionLogPath:       null as string | null,
+  queuedUserMessages:   [] as QueuedMessage[],
 };

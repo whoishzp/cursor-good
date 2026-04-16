@@ -88,7 +88,14 @@ export function createPanel(prompt: ActivePrompt): vscode.WebviewPanel {
 
   panel.webview.onDidReceiveMessage((msg) => {
     if (msg.type === 'submit') {
-      resolvePendingCall(msg.callId, msg.text ?? '', msg.images ?? []);
+      if (appState.activePrompt && pendingCalls.has(appState.activePrompt.callId)) {
+        resolvePendingCall(msg.callId, msg.text ?? '', msg.images ?? []);
+      } else {
+        // AI is not waiting — queue the message
+        appState.queuedUserMessages.push({ text: msg.text ?? '', images: msg.images ?? [] });
+        appendMessage({ role: 'user', text: msg.text ?? '', images: msg.images ?? [], status: 'pending', ts: Date.now() });
+        panel.webview.postMessage({ type: 'messageQueued', msgId: msg.msgId });
+      }
     }
   });
 
@@ -96,6 +103,15 @@ export function createPanel(prompt: ActivePrompt): vscode.WebviewPanel {
 }
 
 export function promptUser(message: string, options: string[]): Promise<FeedbackResult> {
+  // 0. Flush all queued messages (user typed while AI was busy)
+  if (appState.queuedUserMessages.length > 0) {
+    const allQueued = appState.queuedUserMessages.splice(0);
+    const mergedText   = allQueued.map(m => m.text).filter(Boolean).join('\n');
+    const mergedImages = allQueued.flatMap(m => m.images);
+    appState.feedbackPanel?.webview.postMessage({ type: 'allMessagesDequeued' });
+    return Promise.resolve({ CursorGood: mergedText, images: mergedImages });
+  }
+
   // 1. Consume buffered result (user responded between timeout and re-poll)
   if (bufferedResult) {
     const result = bufferedResult;

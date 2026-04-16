@@ -147,6 +147,18 @@ export function buildWebviewHtml(
     border-radius: 4px; border: 1px solid var(--border);
   }
 
+  /* ── pending badge ── */
+  .pending-badge {
+    display: inline-block;
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+    margin-top: 4px;
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--ai-bubble);
+  }
+
   /* ── input section ── */
   .input-section {
     flex-shrink: 0;
@@ -238,8 +250,9 @@ export function buildWebviewHtml(
   const AI_ICON = ${JSON.stringify(iconUri)};
   let currentCallId = '${callId}';
   const pendingImages = [];
-  // [{ role: 'ai'|'user', text, images[] }]
+  // [{ role: 'ai'|'user', text, images[], msgId? }]
   const messages = [];
+  let msgCounter = 0;
 
   // ── 恢复历史消息 ──
   const _history = ${historyJson};
@@ -254,12 +267,16 @@ export function buildWebviewHtml(
   // ── 渲染当前 AI 消息 ──
   appendAIMessage(${JSON.stringify(escapedMessage)}, ${optionsJson}, '${callId}', Date.now());
 
-  // ── 接收 extension 发来的新 prompt ──
+  // ── 接收 extension 发来的消息 ──
   window.addEventListener('message', (e) => {
     const d = e.data;
     if (d.type === 'newPrompt') {
       currentCallId = d.callId;
       appendAIMessage(d.message, d.options, d.callId, d.ts || Date.now());
+    } else if (d.type === 'messageQueued') {
+      markMessagePending(d.msgId);
+    } else if (d.type === 'allMessagesDequeued') {
+      clearAllPendingBadges();
     }
   });
 
@@ -298,11 +315,12 @@ export function buildWebviewHtml(
     });
   }
 
-  function appendUserMessage(text, imgDataUrls, ts) {
+  function appendUserMessage(text, imgDataUrls, ts, msgId) {
     const timeStr = formatTime(ts || Date.now());
-    messages.push({ role: 'user', text, images: imgDataUrls.map(d => d), ts: ts || Date.now() });
+    messages.push({ role: 'user', text, images: imgDataUrls.map(d => d), ts: ts || Date.now(), msgId });
     const row = document.createElement('div');
     row.className = 'msg-row user';
+    if (msgId) row.dataset.msgId = msgId;
     let imgsHtml = '';
     if (imgDataUrls.length > 0) {
       imgsHtml = '<div class="bubble-imgs">' +
@@ -318,6 +336,27 @@ export function buildWebviewHtml(
     \`;
     document.getElementById('chat-area').appendChild(row);
     scrollBottom();
+    return row;
+  }
+
+  function markMessagePending(msgId) {
+    if (!msgId) return;
+    const row = document.querySelector(\`[data-msg-id="\${msgId}"]\`);
+    if (!row) return;
+    const timeEl = row.querySelector('.msg-time');
+    if (timeEl && !timeEl.querySelector('.pending-badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'pending-badge';
+      badge.dataset.pending = '1';
+      badge.textContent = '⏳ 待处理中';
+      timeEl.appendChild(badge);
+    }
+  }
+
+  function clearAllPendingBadges() {
+    document.querySelectorAll('.pending-badge[data-pending="1"]').forEach(el => {
+      el.remove();
+    });
   }
 
   function escHtml(s) {
@@ -342,8 +381,9 @@ export function buildWebviewHtml(
   function submit() {
     const text = document.getElementById('ta').value.trim();
     if (!text && pendingImages.length === 0) return;
-    vscode.postMessage({ type: 'submit', callId: currentCallId, text, images: [...pendingImages] });
-    appendUserMessage(text, [...pendingImages], Date.now());
+    const msgId = 'msg-' + (++msgCounter);
+    vscode.postMessage({ type: 'submit', callId: currentCallId, text, images: [...pendingImages], msgId });
+    appendUserMessage(text, [...pendingImages], Date.now(), msgId);
     document.getElementById('ta').value = '';
     pendingImages.length = 0;
     document.getElementById('image-strip').innerHTML = '';
