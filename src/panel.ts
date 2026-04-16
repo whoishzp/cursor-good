@@ -16,6 +16,7 @@ function getPollTimeoutMs(): number {
 }
 
 let bufferedResult: FeedbackResult | null = null;
+let batchTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Guard: move text editors that land in the CursorGood column back to group 1. */
 export function registerEditorGuard(context: vscode.ExtensionContext): void {
@@ -81,6 +82,9 @@ export function createPanel(prompt: ActivePrompt): vscode.WebviewPanel {
   panel.onDidDispose(() => {
     if (appState.feedbackPanel !== panel) { return; }
     appState.feedbackPanel = null;
+    // Cancel pending batch flush and clear queue so disposed panel doesn't trigger a re-open
+    if (batchTimer) { clearTimeout(batchTimer); batchTimer = null; }
+    appState.queuedUserMessages = [];
     if (appState.activePrompt && pendingCalls.has(appState.activePrompt.callId)) {
       resolvePendingCall(appState.activePrompt.callId, '', []);
     }
@@ -88,14 +92,26 @@ export function createPanel(prompt: ActivePrompt): vscode.WebviewPanel {
 
   panel.webview.onDidReceiveMessage((msg) => {
     if (msg.type === 'submit') {
-      if (appState.activePrompt && pendingCalls.has(appState.activePrompt.callId)) {
-        resolvePendingCall(msg.callId, msg.text ?? '', msg.images ?? []);
-      } else {
-        // AI is not waiting — queue the message
-        appState.queuedUserMessages.push({ text: msg.text ?? '', images: msg.images ?? [] });
-        appendMessage({ role: 'user', text: msg.text ?? '', images: msg.images ?? [], status: 'pending', ts: Date.now() });
-        panel.webview.postMessage({ type: 'messageQueued', msgId: msg.msgId });
-      }
+      // Always queue first — debounce will batch-flush to an active pendingCall within 50 ms.
+      // This ensures rapid multi-message sequences are always merged before the AI receives them.
+      appState.queuedUserMessages.push({ text: msg.text ?? '', images: msg.images ?? [] });
+      appendMessage({ role: 'user', text: msg.text ?? '', images: msg.images ?? [], status: 'pending', ts: Date.now() });
+      panel.webview.postMessage({ type: 'messageQueued', msgId: msg.msgId });
+
+      // Debounce: after 50 ms of silence, flush all queued messages to the waiting AI in one shot
+      if (batchTimer) { clearTimeout(batchTimer); }
+      batchTimer = setTimeout(() => {
+        batchTimer = null;
+        if (appState.queuedUserMessages.length === 0) { return; }
+        if (appState.activePrompt && pendingCalls.has(appState.activePrompt.callId)) {
+          const allQueued   = appState.queuedUserMessages.splice(0);
+          const mergedText  = allQueued.map(m => m.text).filter(Boolean).join('\n');
+          const mergedImages = allQueued.flatMap(m => m.images);
+          appState.feedbackPanel?.webview.postMessage({ type: 'allMessagesDequeued' });
+          resolvePendingCall(appState.activePrompt.callId, mergedText, mergedImages);
+        }
+        // If no active pendingCall, queue stays for the next promptUser() call
+      }, 50);
     }
   });
 
@@ -122,6 +138,21 @@ export function promptUser(message: string, options: string[]): Promise<Feedback
   // 2. Re-poll: active prompt still waiting → re-subscribe with fresh timeout
   if (appState.activePrompt && pendingCalls.has(appState.activePrompt.callId)) {
     const callId = appState.activePrompt.callId;
+
+    // Consume any messages that arrived during the previous WAITING_SENTINEL window
+    if (appState.queuedUserMessages.length > 0) {
+      const allQueued    = appState.queuedUserMessages.splice(0);
+      const mergedText   = allQueued.map(m => m.text).filter(Boolean).join('\n');
+      const mergedImages = allQueued.flatMap(m => m.images);
+      // Neutralise the stale pendingCall so it won't fire later
+      const stale = pendingCalls.get(callId);
+      if (stale) { stale.resolve = () => {}; pendingCalls.delete(callId); }
+      appState.activePrompt = null;
+      appendMessage({ role: 'user', text: mergedText, images: mergedImages, ts: Date.now() });
+      appState.feedbackPanel?.webview.postMessage({ type: 'allMessagesDequeued' });
+      return Promise.resolve({ CursorGood: mergedText, images: mergedImages });
+    }
+
     return new Promise((resolve) => {
       const timer = setTimeout(() => {
         const pending = pendingCalls.get(callId);
