@@ -15,6 +15,37 @@ function getPollTimeoutMs(): number {
   return Math.max(5, Math.min(300, seconds)) * 1000;
 }
 
+function loadIconDataUrl(): string {
+  try {
+    const iconPath = path.join(appState.extensionCtx!.extensionUri.fsPath, 'media', 'icon.png');
+    return `data:image/png;base64,${fs.readFileSync(iconPath).toString('base64')}`;
+  } catch { return ''; }
+}
+
+/**
+ * Push the AI's message into the session log and, if the panel is open,
+ * display it as a non-blocking prompt bubble (no pendingCall created).
+ * Used when queue-flush bypasses the normal prompt flow.
+ */
+function displayAiMessageOnly(callId: string, message: string, options: string[]): void {
+  if (!message) { return; }
+  const iconDataUrl = loadIconDataUrl();
+  initSession();
+  appendMessage({ role: 'ai', text: message, options, callId, ts: Date.now() });
+  const existingPanel = appState.feedbackPanel;
+  if (existingPanel) {
+    try {
+      existingPanel.webview.postMessage({
+        type: 'newPrompt', callId,
+        message: escHtml(message),
+        options: options.map(o => escHtml(o)),
+        iconDataUrl, ts: Date.now(),
+      });
+      existingPanel.reveal(vscode.ViewColumn.Beside, true);
+    } catch { /* panel disposed, no-op */ }
+  }
+}
+
 let bufferedResult: FeedbackResult | null = null;
 let batchTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -121,6 +152,10 @@ export function createPanel(prompt: ActivePrompt): vscode.WebviewPanel {
 export function promptUser(message: string, options: string[]): Promise<FeedbackResult> {
   // 0. Flush all queued messages (user typed while AI was busy)
   if (appState.queuedUserMessages.length > 0) {
+    // Show the AI's current result/message FIRST, then release the pending messages
+    const bypassCallId = crypto.randomUUID();
+    displayAiMessageOnly(bypassCallId, message, options);
+
     const allQueued = appState.queuedUserMessages.splice(0);
     const mergedText   = allQueued.map(m => m.text).filter(Boolean).join('\n');
     const mergedImages = allQueued.flatMap(m => m.images);
@@ -141,6 +176,9 @@ export function promptUser(message: string, options: string[]): Promise<Feedback
 
     // Consume any messages that arrived during the previous WAITING_SENTINEL window
     if (appState.queuedUserMessages.length > 0) {
+      // Display the AI's new message before releasing the queued user messages
+      displayAiMessageOnly(crypto.randomUUID(), message, options);
+
       const allQueued    = appState.queuedUserMessages.splice(0);
       const mergedText   = allQueued.map(m => m.text).filter(Boolean).join('\n');
       const mergedImages = allQueued.flatMap(m => m.images);
@@ -197,13 +235,7 @@ export function promptUser(message: string, options: string[]): Promise<Feedback
       },
     });
 
-    let iconDataUrl = '';
-    try {
-      const iconPath = path.join(appState.extensionCtx!.extensionUri.fsPath, 'media', 'icon.png');
-      const iconBytes = fs.readFileSync(iconPath);
-      iconDataUrl = `data:image/png;base64,${iconBytes.toString('base64')}`;
-    } catch { /* icon not found */ }
-
+    const iconDataUrl = loadIconDataUrl();
     appState.activePrompt = { callId, message, options, iconDataUrl };
 
     initSession();
